@@ -1,3 +1,36 @@
+# Postscript fork of kustomize
+
+This is Postscript's fork of kustomize. The only branch that matters is
+`postscript/v5.8.1`. It is upstream kustomize v5.8.1 plus the commits from
+[kubernetes-sigs/kustomize#6302](https://github.com/kubernetes-sigs/kustomize/pull/6302)
+and nothing else.
+
+**Why.** Strategic merge patches are O(n^2) in v5.8.1. Our overlays took 40-97s
+to render and take about 10-22s with the fix. Output is byte-identical (`cmp`)
+across all overlays.
+
+**Why v5.8.1 and not newer.** The Argo CD repo-server we run bundles v5.8.1, and
+the CI-rendered-manifests contract requires byte-identical output. v5.8.2+ also
+drops labels on StatefulSet volumeClaimTemplates for our overlays.
+
+**Consumer.** `Stodge-Inc/acorn` pins this in `infra/argocd/kustomize-version`,
+installed by `scripts/install-pinned-kustomize.sh`.
+
+**Retire it when** #6302 is released upstream and acorn's pin moves to that
+release: switch the pin back to upstream and archive this repo.
+
+**Rebase it when** Argo CD's bundled kustomize version changes: recreate
+`postscript/<new version>` from the new upstream tag, cherry-pick the #6302
+commits, re-run the parity check, cut a new `-ps.N` release, and update the
+acorn pin.
+
+**Cut a release:** `hack/postscript-release.sh <version>` (for example
+`v5.8.1-ps.1`). It writes the tarballs and `checksums.txt` to `dist/<version>/`.
+
+**Owner:** Matt Bridges (@Itsindigo).
+
+---
+
 # kustomize
 
 `kustomize` lets you customize raw, template-free YAML
